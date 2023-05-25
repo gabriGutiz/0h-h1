@@ -2,6 +2,7 @@
 Solver Class
 """
 
+import logging as logger
 import numpy as np
 from SolverException import SolverException
 
@@ -14,7 +15,7 @@ class Solver:
     __solution: np.array
     __size: int
     __half: int
-    __VALID_SIZES = [2, 4, 6, 8, 10, 12]
+    __VALID_SIZES = [4, 6, 8, 10, 12]
 
     def __init__(self, initial_problem: np.array) -> None:
 
@@ -47,13 +48,9 @@ class Solver:
         if (len(dim) != 2) or (str(array.dtype)[:3] != 'int'):
             return False
 
-        test = True
+        validate = dim[0] in self.__VALID_SIZES and dim[0] == dim[-1]
 
-        # verify if dimensions of the array are valid 
-        for size in self.__VALID_SIZES:
-            test = ((dim[0] != size) or (dim[-1] != size))
-
-        return (np.all((array == 0) | (array == 1) | (array == 2)) and test)
+        return (np.all((array == 0) | (array == 1) | (array == 2)) and validate)
 
     def solved(self) -> bool:
         """Check if the array passed on constructor is solved
@@ -103,12 +100,13 @@ class Solver:
         elif code == 2:
             return 1
         else:
-            raise SolverException("Invalid code for changing color!")
+            raise SolverException(f"Invalid code for changing color! (color code: {code})")
 
     def __solve(self) -> None:
 
+        counter = 0
         while not self.solved():
-
+            counter += 1
             for arr in [self.__solution, self.__solution.T]:
                 # iterate thru rows
                 for row in range(self.__size):
@@ -119,15 +117,33 @@ class Solver:
                             arr[row][arr[row] == 0] = self.__change_color(i)
 
                     for i in range(self.__size-2):
-                        # verify if exists two consecutive squares with the same color
-                        if arr[row, i] == arr[row, i+1] != 0:
+                        # change square after two consecutives with the same color
+                        if arr[row, i] == arr[row, i+1] != 0 and arr[row, i+2] == 0:
                             arr[row, i+2] = self.__change_color(arr[row, i])
 
+                        # change square before two consecutives with the same color
+                        aux_i = self.__size-i
+                        if arr[row, aux_i-1] == arr[row, aux_i-2] != 0 and arr[row, aux_i-3] == 0:
+                            arr[row, aux_i-3] = self.__change_color(arr[row, aux_i-1])
+
                         # verify exists two squares with the same color and a diff in the middle
-                        elif arr[row, i] == arr[row, i+2] != 0:
+                        elif arr[row, i] == arr[row, i+2] != 0 and arr[row, i+1] == 0:
                             arr[row, i+1] = self.__change_color(arr[row, i])
 
-                # TODO: implement None equal rows and columns rule
+                    # search for rows that can be equal
+                    for row1 in range(row+1, self.__size):
+                        count = 0
+                        for col in range(self.__size):
+                            if arr[row,col] == arr[row1,col] != 0:
+                                count += 1
+                        if count == self.__size-2:
+                            for col in range(self.__size):
+                                if arr[row,col] == 0 != arr[row1,col]:
+                                    arr[row,col] = self.__change_color(arr[row1,col])
+                                elif arr[row1,col] == 0 != arr[row,col]:
+                                    arr[row1,col] = self.__change_color(arr[row,col])
+            logger.debug(f"\nArray after {counter} iterations:\n{self.__solution}")
+
 
     def solve(self) -> np.array:
         """Solve the problem passed on constructor
