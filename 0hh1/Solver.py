@@ -15,6 +15,7 @@ class Solver:
     __solution: np.array
     __size: int
     __half: int
+    __VALID_COLORS = [1, 2]
     __VALID_SIZES = [4, 6, 8, 10, 12]
 
     def __init__(self, initial_problem: np.array) -> None:
@@ -52,6 +53,23 @@ class Solver:
 
         return (np.all((array == 0) | (array == 1) | (array == 2)) and validate)
 
+    def __verify_squares_row(self, row: np.array) -> bool:
+        """verify if row have the quantity of one color equals to half of size
+
+        Args:
+            row (np.array): one row array
+
+        Returns:
+            bool: true if have the exact half of each color
+        """
+        row_list = list(row)
+        result = True
+
+        for color in self.__VALID_COLORS:
+            result = result and row_list.count(color) == self.__half
+
+        return result
+
     def solved(self) -> bool:
         """Check if the array passed on constructor is solved
 
@@ -71,23 +89,20 @@ class Solver:
         # verify if exists any square different of the colors
         if np.all((self.__solution == 1) | (self.__solution == 2)):
 
-            for aux in [self.__solution, self.__solution.T]:
+            for array in [self.__solution, self.__solution.T]:
                 for row in range(self.__size):
                     # verify if the number of the same color in row are more than the size / 2
-                    if (
-                        (list(aux[row]).count(1) != self.__half) or
-                        (list(aux[row]).count(2) != self.__half)
-                    ):
+                    if not self.__verify_squares_row(array[row]):
                         return False
 
                     # verify if exist any row equal to the actual row
                     for row1 in range(row+1, self.__size):
-                        if (aux[row] == aux[row1]).all():
+                        if (array[row] == array[row1]).all():
                             return False
 
                     # verify if exist any three squares of the same color
                     for index in range(self.__size-2):
-                        if aux[row, index] == aux[row, index+1] == aux[row, index+2]:
+                        if array[row, index] == array[row, index+1] == array[row, index+2]:
                             return False
         else:
             return False
@@ -143,7 +158,6 @@ class Solver:
                                 elif arr[row1,col] == 0 != arr[row,col]:
                                     arr[row1,col] = self.__change_color(arr[row,col])
             logger.debug(f"\nArray after {counter} iterations:\n{self.__solution}")
-
 
     def solve(self) -> np.array:
         """Solve the problem passed on constructor
