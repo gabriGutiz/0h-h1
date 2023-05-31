@@ -1,0 +1,23 @@
+
+from 0hh1 import SolverMobile
+
+"""LATER ADDING DEVICE/PATH"""
+mob_solver = SolverMobile()
+
+# if wants to get game from connected device
+mob_solver.get_game()
+
+# if wants to get game from saved screenshot
+mob_solver.get_game(path='/path/to/image.png')
+
+"""ADDING DEVICE/PATH ON CTOR"""
+# get from connected device
+mob_solver = SolverMobile(device=True)
+
+# get from saved image
+mo_solver = SolverMobile(path='/PATH/TO/FILE')
+
+"""ALL PORPOUSE CODE"""
+mob_solver.solve()
+
+print(mob_solver.solution)
