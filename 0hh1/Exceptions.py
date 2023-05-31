@@ -1,5 +1,5 @@
 """
-Solver Exception
+Lib Exceptions
 """
 class SolverException(Exception):
     """
